@@ -1,0 +1,75 @@
+/* frontend/src/pages/DirectMessagesPage.css */
+
+.dm-page-layout {
+    grid-column: 2 / span 3;
+    display: grid;
+    grid-template-columns: 350px 1fr; /* Colonne de gauche pour la liste, le reste pour le tchat */
+    height: 100vh;
+}
+
+.conversation-list-panel {
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--primary-bg);
+    display: flex;
+    flex-direction: column;
+}
+.conversation-list-panel header {
+    padding: 20px;
+    border-bottom: 1px solid var(--primary-bg);
+}
+.conversation-list-panel h2 {
+    margin: 0;
+    font-size: 22px;
+}
+.conversation-list {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--tertiary-bg);
+    transition: background-color 0.2s;
+}
+.conversation-item:hover, .conversation-item.active {
+    background-color: var(--tertiary-bg);
+}
+
+.conversation-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+.conversation-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+.partner-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+.last-message-preview {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.last-message-time {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.dm-chat-window {
+    display: flex;
+    flex-direction: column;
+}
+/* Le ChatWindow s'adaptera car il est déjà conçu pour prendre 100% de la hauteur de son parent */

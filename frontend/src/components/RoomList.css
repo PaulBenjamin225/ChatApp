@@ -1,0 +1,122 @@
+/* src/components/RoomList.css */
+.room-list-container {
+    grid-column: 2 / 3;
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: 1px solid #2a2e33;
+    display: flex; /* Aligne les 3 composants (RoomList, ChatWindow, RoomInfo) horizontalement */
+    height: 100vh; /* Prend 100% de la hauteur de l'écran */
+    padding-top: 20px; 
+    box-sizing: border-box; /* Fait en sorte que le padding ne s'ajoute pas à la hauteur totale */
+    overflow: hidden; /* Empêche la page entière de scroller, seuls les composants internes le pourront */
+
+}
+
+.search-bar {
+    position: relative;
+}
+.search-bar input {
+    width: 100%;
+    background-color: var(--tertiary-bg);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 15px 10px 40px;
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.online-users-section h3, .messages-section h3 {
+    color: var(--text-primary);
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.online-users-list {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px; /* For scrollbar */
+}
+
+.online-user-avatar {
+    position: relative;
+    cursor: pointer;
+}
+.online-user-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+}
+.online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--online-indicator);
+    border-radius: 50%;
+    border: 2px solid var(--secondary-bg);
+}
+
+.room-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    height: calc(100vh - 250px); /* Adjust height as needed */
+}
+
+.room-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.room-item:hover, .room-item.active {
+    background-color: var(--tertiary-bg);
+}
+
+.room-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #5865f2;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.room-item-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.room-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+.room-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -1,0 +1,221 @@
+.users-page-container {
+    /* Occupe les 3 colonnes de droite */
+    grid-column: 2 / span 3;
+    background-color: var(--secondary-bg);
+    padding: 40px;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.users-page-header {
+    margin-bottom: 30px;
+}
+
+.users-page-header h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.search-container {
+    position: relative;
+    max-width: 400px;
+}
+.search-container input {
+    width: 100%;
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--primary-bg);
+    border-radius: 8px;
+    padding: 12px 15px 12px 40px;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+.search-container .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    flex-grow: 1;
+}
+
+.user-card {
+    background-color: var(--tertiary-bg);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.user-card-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.user-card-name {
+    margin: 0 0 5px 0;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+.user-card-age-gender {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.user-card-intent {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: auto; /* Pousse ce bloc vers le bas */
+    margin-bottom: 15px;
+}
+.user-card-intent strong {
+    color: var(--text-primary);
+}
+
+.user-card-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+.action-button {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.action-button.message {
+    background-color: var(--accent-color);
+    color: white;
+}
+.action-button.message:hover {
+    background-color: #c62828;
+}
+.action-button.block {
+    background-color: #5c636a;
+    color: white;
+}
+.action-button.block:hover {
+    background-color: #494f55;
+}
+
+.error-message {
+    color: var(--accent-color);
+}
+
+.user-card {
+    position: relative; /* Pour positionner le bouton favori */
+}
+
+.favorite-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+    padding: 5px;
+    line-height: 1;
+    z-index: 2; /* S'assurer qu'il est au-dessus des autres éléments */
+}
+.favorite-button:hover {
+    transform: scale(1.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--tertiary-bg);
+}
+
+.profile-picture-container {
+    position: relative;
+    cursor: pointer;
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.profile-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--tertiary-bg);
+    transition: filter 0.3s;
+}
+
+.profile-picture-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.profile-picture-container:hover .profile-picture {
+    filter: brightness(0.7);
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+    opacity: 1;
+}
+
+.profile-picture-overlay svg {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.profile-header-info h1 {
+    margin: 0;
+}
+.profile-header-info p {
+    margin: 5px 0 0 0;
+    color: var(--text-secondary);
+}
+
+/* Modifier le style existant pour qu'il ne contienne plus l'en-tête */
+.settings-content h1 {
+    font-size: 28px;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}

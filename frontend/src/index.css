@@ -1,0 +1,44 @@
+/* src/index.css */
+:root {
+  --primary-bg: #1e2126;      /* Fond très sombre */
+  --secondary-bg: #282b30;     /* Fond des panneaux */
+  --tertiary-bg: #36393f;      /* Fond des éléments interactifs (input, etc) */
+  --header-bg: #202225;        /* Fond de l'en-tête du chat */
+
+  --text-primary: #ffffff;
+  --text-secondary: #b9bbbe;
+  --text-muted: #72767d;
+
+  --accent-color: #e53935;     /* Rouge pour les messages envoyés et notifications */
+  --online-indicator: #43b581;
+
+  --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--primary-bg);
+  color: var(--text-primary);
+  overflow: hidden; /* Empêche le scroll sur la page entière */
+}
+
+/* Style de la barre de défilement pour un look plus intégré */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tertiary-bg);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

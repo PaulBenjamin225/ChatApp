@@ -1,0 +1,66 @@
+/* src/components/Sidebar.css */
+.sidebar {
+  grid-column: 1 / 2;
+  background-color: var(--primary-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  border-right: 1px solid #2a2e33;
+}
+
+.sidebar-logo {
+  margin-bottom: 30px;
+  
+}
+
+.logo-placeholder {
+  width: 48px;
+  height: 48px;
+  background-color: var(--tertiary-bg);
+  border-radius: 50%;
+  /* Similaire à l'image */
+  background-image: url('https://i.imgur.com/8KD2J4G.png'); /* Remplacez par votre vrai logo */
+  background-size: cover;
+  background-position: center;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  flex-grow: 1;
+}
+
+.nav-item {
+  color: var(--text-muted);
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-item:hover, .nav-item.active {
+  color: var(--text-primary);
+  background-color: var(--accent-color);
+}
+.logout-btn {
+  margin-top: auto;
+}
+
+.nav-item.active {
+    color: var(--text-primary);
+    background-color: var(--accent-color);
+}
+
+.logo-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-color);
+}

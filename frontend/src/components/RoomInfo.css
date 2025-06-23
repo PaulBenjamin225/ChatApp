@@ -1,0 +1,44 @@
+/* src/components/RoomInfo.css */
+.room-info-container {
+    grid-column: 4 / 5;
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    border-left: 1px solid #2a2e33;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+.info-header h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+}
+.info-section h4 {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.info-section p {
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+.online-members-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+}
+.member-item img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}

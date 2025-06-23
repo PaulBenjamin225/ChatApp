@@ -1,0 +1,87 @@
+/* src/App.css */
+.app-layout {
+  display: grid;
+  grid-template-columns: 70px 300px 1fr 280px; /* Sidebar | List | Chat | Info */
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--secondary-bg);
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--primary-bg);
+}
+
+.auth-form {
+  background-color: var(--secondary-bg);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-form h2 {
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.auth-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form label {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.auth-form input {
+  background-color: var(--tertiary-bg);
+  border: 1px solid var(--primary-bg);
+  border-radius: 4px;
+  padding: 12px;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.auth-form button {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-form button:hover {
+  background-color: #c62828;
+}
+
+.auth-form .switch-auth {
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 14px;
+}
+
+.auth-form .switch-auth a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: bold;
+}

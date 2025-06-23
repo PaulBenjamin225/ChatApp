@@ -1,0 +1,145 @@
+.settings-page-container {
+    /* Occupe les 3 colonnes de droite de notre grille de 4 colonnes */
+    grid-column: 2 / span 3;
+    background-color: var(--secondary-bg);
+    padding: 40px;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.settings-content {
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--text-primary);
+}
+
+.settings-content h1 {
+    font-size: 28px;
+    border-bottom: 1px solid var(--tertiary-bg);
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+}
+
+.settings-content p {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--primary-bg);
+    border-radius: 4px;
+    padding: 12px;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: var(--font-family);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.save-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: flex-start;
+}
+
+.save-button:hover {
+    background-color: #c62828;
+}
+
+.status-message {
+    margin-top: 15px;
+    color: var(--online-indicator);
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--tertiary-bg);
+    margin: 40px 0;
+}
+
+.blocked-users-section h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.blocked-users-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.blocked-user-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--tertiary-bg);
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.blocked-user-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.blocked-user-item span {
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.unblock-button {
+    margin-left: auto;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.unblock-button:hover {
+    background-color: #c62828;
+}
