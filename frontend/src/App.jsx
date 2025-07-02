@@ -29,11 +29,21 @@ function App() {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                
                 <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
                     <Route index element={<ChatPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route path="users" element={<UsersPage />} />
+                    
+                    {/* ▼▼▼ LA CORRECTION FINALE EST ICI ▼▼▼ */}
+                    
+                    {/* 1. Route pour la page des messages SANS conversation sélectionnée */}
                     <Route path="dms" element={<DirectMessagesPage />} />
+                    
+                    {/* 2. Route pour la page des messages AVEC une conversation sélectionnée */}
+                    <Route path="dms/:conversationId" element={<DirectMessagesPage />} />
+                    
+                    {/* Le reste de vos routes */}
                     <Route path="bookmarks" element={<FavoritesPage />} /> 
                 </Route>
             </Routes>
