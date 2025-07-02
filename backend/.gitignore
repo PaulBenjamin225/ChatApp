@@ -1,0 +1,12 @@
+# Ignorer les dépendances
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Ignorer les variables d'environnement locales
+.env
+frontend/.env
+backend/.env
+
+# Ignorer les dossiers d'upload générés par le serveur
+backend/uploads/

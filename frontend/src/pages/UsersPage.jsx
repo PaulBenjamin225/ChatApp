@@ -1,22 +1,22 @@
-// frontend/src/pages/UsersPage.jsx
+// frontend/src/pages/UsersPage.jsx - Version Corrigée
 
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // <-- On n'a plus besoin de axios
+import apiClient from '../api/axios'; // <-- On importe notre client API
 import { useNavigate } from 'react-router-dom';
-import AuthContext from '../context/AuthContext';
+import AuthContext from '../context/AuthContext'; // On en a encore besoin pour le token de UsersPage
 import { FaSearch, FaStar, FaRegStar } from 'react-icons/fa';
 import './UsersPage.css';
 
-// Le composant UserCard est maintenant exporté pour être utilisé par FavoritesPage
+
 export const UserCard = ({ user, onBlock, isFavorite, onFavoriteToggle }) => {
     const navigate = useNavigate();
-    const { token } = useContext(AuthContext);
+    // Le token n'est plus nécessaire ici, apiClient le gère !
 
     const handleStartConversation = async () => {
         try {
-            await axios.post('http://localhost:5000/api/conversations', { partnerId: user.id }, { 
-                headers: { Authorization: `Bearer ${token}` } 
-            });
+            // --- CORRECTION : Utilisation de apiClient ---
+            await apiClient.post('/api/conversations', { partnerId: user.id });
             navigate('/dms');
         } catch (error) {
             console.error(error);
@@ -26,17 +26,18 @@ export const UserCard = ({ user, onBlock, isFavorite, onFavoriteToggle }) => {
     
     const handleToggleFavorite = async () => {
         const action = isFavorite ? 'delete' : 'post';
-        const url = `http://localhost:5000/api/favorites/${user.id}`;
+        const url = `/api/favorites/${user.id}`; // URL simplifiée
         
         try {
             if (action === 'post') {
-                await axios.post(url, {}, { headers: { Authorization: `Bearer ${token}` } });
+                // --- CORRECTION : Utilisation de apiClient ---
+                await apiClient.post(url, {});
             } else {
-                await axios.delete(url, { headers: { Authorization: `Bearer ${token}` } });
+                // --- CORRECTION : Utilisation de apiClient ---
+                await apiClient.delete(url);
             }
-            
             if(onFavoriteToggle) {
-                onFavoriteToggle(); // Appelle la fonction passée en prop pour rafraîchir l'état parent
+                onFavoriteToggle();
             }
         } catch (error) {
             console.error(error);
@@ -62,7 +63,7 @@ export const UserCard = ({ user, onBlock, isFavorite, onFavoriteToggle }) => {
 };
 
 const UsersPage = () => {
-    const { token } = useContext(AuthContext);
+    const { token } = useContext(AuthContext); // On le garde ici pour le useEffect dépendant du token
     const [users, setUsers] = useState([]);
     const [favoriteStatus, setFavoriteStatus] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
@@ -72,17 +73,16 @@ const UsersPage = () => {
         if (!token) return;
         setLoading(true);
         try {
-            const usersRes = await axios.get(`http://localhost:5000/api/users/search`, {
-                headers: { Authorization: `Bearer ${token}` },
+            // --- CORRECTION : Utilisation de apiClient ---
+            const usersRes = await apiClient.get(`/api/users/search`, {
                 params: { keyword: searchTerm }
             });
             setUsers(usersRes.data);
 
             if (usersRes.data.length > 0) {
                 const userIds = usersRes.data.map(u => u.id);
-                const favsRes = await axios.post(`http://localhost:5000/api/favorites/status`, { userIds }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                // --- CORRECTION : Utilisation de apiClient ---
+                const favsRes = await apiClient.post(`/api/favorites/status`, { userIds });
                 setFavoriteStatus(favsRes.data);
             } else {
                 setFavoriteStatus({});
@@ -104,12 +104,14 @@ const UsersPage = () => {
     const handleBlockUser = async (userId) => {
         if (!window.confirm("Êtes-vous sûr de vouloir bloquer cet utilisateur ?")) return;
         try {
-            await axios.post(`http://localhost:5000/api/users/block/${userId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-            fetchUsersAndFavorites(); // Recharger la liste pour retirer l'utilisateur
+            // --- CORRECTION : Utilisation de apiClient ---
+            await apiClient.post(`/api/users/block/${userId}`, {});
+            fetchUsersAndFavorites();
         } catch (err) { alert("Le blocage a échoué."); }
     };
     
     const handleFavoriteToggle = () => {
+        // Simple rafraîchissement
         fetchUsersAndFavorites();
     };
 

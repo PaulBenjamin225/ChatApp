@@ -1,10 +1,11 @@
-// frontend/src/pages/FavoritesPage.jsx
+// frontend/src/pages/FavoritesPage.jsx - Version Corrigée
 
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // <-- CHANGEMENT : On n'a plus besoin d'importer axios ici
+import apiClient from '../api/axios'; // <-- CHANGEMENT : On importe notre client API centralisé
 import AuthContext from '../context/AuthContext';
-import { UserCard } from './UsersPage'; // On importe le composant UserCard
-import './UsersPage.css'; // On réutilise le même style
+import { UserCard } from './UsersPage';
+import './UsersPage.css';
 
 const FavoritesPage = () => {
     const { token } = useContext(AuthContext);
@@ -14,7 +15,10 @@ const FavoritesPage = () => {
     const fetchFavorites = () => {
         if (!token) return;
         setLoading(true);
-        axios.get('http://localhost:5000/api/favorites', { headers: { Authorization: `Bearer ${token}` } })
+        
+        // --- CHANGEMENT : Utilisation de apiClient ---
+        // L'URL et le header d'autorisation sont gérés automatiquement.
+        apiClient.get('/api/favorites')
             .then(res => setFavorites(res.data))
             .catch(err => console.error("Erreur chargement favoris", err))
             .finally(() => setLoading(false));
@@ -22,15 +26,13 @@ const FavoritesPage = () => {
 
     useEffect(fetchFavorites, [token]);
 
-    // Pour l'instant, le blocage sur cette page n'est pas implémenté
     const handleBlockUser = (userId) => {
         alert(`Blocage non implémenté ici (ID: ${userId})`);
     };
 
-    // Pour le bouton "Favori", il faut le retirer ici
     const handleFavoriteAction = () => {
-        // Cette fonction sera utilisée pour retirer un favori.
-        // Après le retrait, on recharge la liste.
+        // Cette fonction est appelée après qu'un utilisateur a été retiré des favoris
+        // depuis le composant UserCard. On rafraîchit simplement la liste.
         fetchFavorites();
     };
 
@@ -48,7 +50,7 @@ const FavoritesPage = () => {
                         key={user.id} 
                         user={user} 
                         onBlock={handleBlockUser} 
-                        isFavorite={true} // On dit à la carte que c'est un favori
+                        isFavorite={true} // On dit à la carte que l'utilisateur est déjà un favori
                         onFavoriteToggle={handleFavoriteAction}
                     />
                 )) : <p>Vous n'avez ajouté aucun utilisateur à vos favoris.</p>}

@@ -1,4 +1,4 @@
-// chat-backend/server.js
+// chat-backend/server.js - Version Complète et Corrigée pour Déploiement
 
 const express = require('express');
 const http = require('http');
@@ -7,7 +7,8 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
 
-const db = require('./config/db');
+// Assurez-vous que le fichier db.js utilise les variables d'environnement (process.env)
+const db = require('./config/db'); 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const roomRoutes = require('./routes/roomRoutes');
@@ -17,11 +18,25 @@ const conversationRoutes = require('./routes/conversationRoutes');
 const favoriteRoutes = require('./routes/favoriteRoutes');
 
 const app = express();
-app.use(cors());
+
+// --- CORRECTION : Configuration CORS centralisée et dynamique ---
+// L'URL du front-end est récupérée depuis les variables d'environnement.
+// Si la variable n'est pas définie (ex: en local), elle utilise "http://localhost:5173".
+const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+console.log(`[CORS] Autorisation des requêtes HTTP depuis : ${frontendURL}`);
+app.use(cors({ origin: frontendURL }));
+
 app.use(express.json());
+
+// --- POINT D'ATTENTION : Stockage de fichiers sur Render ---
+// Le système de fichiers de Render n'est pas persistant. Les fichiers téléchargés dans le dossier
+// 'uploads' seront supprimés à chaque redéploiement ou redémarrage du service.
+// Pour une application en production, il est fortement recommandé d'utiliser un service
+// de stockage externe comme Amazon S3, Google Cloud Storage ou Cloudinary.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// Déclaration des routes de l'API
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
@@ -31,10 +46,18 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/favorites', favoriteRoutes);
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
 
+// --- CORRECTION : Configuration CORS pour Socket.IO ---
+// On utilise la même URL que pour les requêtes HTTP pour assurer la cohérence.
+const io = new Server(server, { 
+    cors: { 
+        origin: frontendURL,
+        methods: ["GET", "POST"]
+    } 
+});
 
-// --- LOGIQUE POUR LES ROOMS PUBLIQUES (INCHANGÉE) ---
+// --- Logique Socket.IO ---
+
 let onlineUsers = {};
 
 io.on('connection', (socket) => {
@@ -76,10 +99,11 @@ io.on('connection', (socket) => {
                 const [result] = await db.query('INSERT INTO messages (content, type, user_id, room_id) VALUES (?, ?, ?, ?)', [content, type, userId, roomId]);
                 const messageData = { id: result.insertId, content, type, timestamp: new Date(), user: { id: userId, username: user.username, profile_picture_url: user.profile_picture_url } };
                 io.to(roomId).emit('message', messageData);
-            } catch(error) { console.error(error); }
+            } catch(error) { 
+                console.error("Erreur lors de l'insertion du message public :", error); 
+            }
         }
     });
-
 
     socket.on('joinConversation', ({ conversationId }) => {
         console.log(`[Socket] Utilisateur ${socket.id} a rejoint la conversation ${conversationId}`);
@@ -87,38 +111,27 @@ io.on('connection', (socket) => {
     });
 
     socket.on('sendPrivateMessage', async (payload) => {
-        console.log("--- [BACKEND] Événement 'sendPrivateMessage' REÇU ---");
-        console.log("Payload reçu:", payload);
+        console.log("[BACKEND] Événement 'sendPrivateMessage' reçu avec le payload:", payload);
 
         const { content, userId, conversationId, type = 'text' } = payload;
         
         if (!content || !userId || !conversationId) {
-            console.error('[BACKEND] ERREUR FATALE: Payload invalide ou incomplet. Annulation.');
+            console.error('[BACKEND] ERREUR : Payload invalide pour sendPrivateMessage. Annulation.');
             return; 
         }
 
         try {
-            // ÉTAPE 1: Insertion dans la table 'private_messages'.
-            const insertMessageQuery = `
-                INSERT INTO private_messages (content, type, user_id, conversation_id) 
-                VALUES (?, ?, ?, ?)
-            `;
+            // Étape 1: Insérer le message dans la base de données
+            const insertMessageQuery = 'INSERT INTO private_messages (content, type, user_id, conversation_id) VALUES (?, ?, ?, ?)';
             const [result] = await db.query(insertMessageQuery, [content, type, userId, conversationId]);
             const newMessageId = result.insertId;
 
-            console.log(`[DB] Message privé ${newMessageId} sauvegardé.`);
-
-            // ÉTAPE 2: Mise à jour de la conversation parente.
-            const updateConvQuery = `
-                UPDATE conversations 
-                SET last_message = ?, last_message_type = ?, last_message_time = NOW()
-                WHERE id = ?
-            `;
+            // Étape 2: Mettre à jour la conversation avec le dernier message
+            const updateConvQuery = 'UPDATE conversations SET last_message = ?, last_message_type = ?, last_message_time = NOW() WHERE id = ?';
             const previewContent = type !== 'text' ? `Fichier (${type})` : content.substring(0, 100);
             await db.query(updateConvQuery, [previewContent, type, conversationId]);
-            console.log(`[DB] Conversation ${conversationId} mise à jour.`);
-
-            // ÉTAPE 3: Récupération du message complet pour la diffusion.
+            
+            // Étape 3: Récupérer le message complet avec les informations de l'utilisateur
             const getMessageQuery = `
                 SELECT 
                     pm.id, pm.content, pm.type, pm.created_at AS timestamp,
@@ -141,18 +154,16 @@ io.on('connection', (socket) => {
                 user: { id: dbMessage.user_id, username: dbMessage.username, avatar: dbMessage.avatar }
             };
             
-            // ÉTAPE 4: Diffusion du message complet.
+            // Étape 4: Diffuser le message aux clients dans la bonne conversation
             io.to(String(conversationId)).emit('privateMessage', formattedMessage);
-            console.log(`[Socket] Message ${formattedMessage.id} diffusé à la conv ${conversationId}. Cycle complet réussi.`);
+            console.log(`[Socket] Message privé ${formattedMessage.id} diffusé à la conv ${conversationId}.`);
 
         } catch (error) {
-            console.error("--- [BACKEND] ERREUR DANS LE BLOC TRY/CATCH de 'sendPrivateMessage' ---");
-            console.error(error); // AFFICHE L'ERREUR SQL EXACTE SI ELLE EXISTE
+            console.error("--- ERREUR CRITIQUE DANS 'sendPrivateMessage' ---", error);
         }
     });
 
-
-    // --- GESTION DE LA DÉCONNEXION ---
+    // Gestion de la déconnexion
     socket.on('disconnect', () => {
         console.log(`[Socket] Utilisateur ${socket.id} déconnecté.`);
         const user = socket.currentUser;
@@ -164,5 +175,7 @@ io.on('connection', (socket) => {
     });
 });
 
+// --- Démarrage du serveur (BONNE PRATIQUE) ---
+// Utilise le port fourni par Render, ou 5000 par défaut pour le développement local.
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
+server.listen(PORT, () => console.log(`Serveur démarré et à l'écoute sur le port ${PORT}`));

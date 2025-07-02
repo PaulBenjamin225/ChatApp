@@ -1,20 +1,23 @@
-// frontend/src/pages/DirectMessagesPage.jsx
+// frontend/src/pages/DirectMessagesPage.jsx - Version Corrigée
 
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Nécessaire pour la persistance
-import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { formatRelative } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+import apiClient from '../api/axios'; // <-- CHANGEMENT : On importe notre client API
 import AuthContext from '../context/AuthContext';
 import ChatWindow from '../components/ChatWindow';
 import './DirectMessagesPage.css';
 
-const socket = io('http://localhost:5000');
+// --- CHANGEMENT N°1 : Connexion Socket.IO dynamique ---
+const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const socket = io(VITE_API_URL);
 
-// Ce composant est correct, on n'y touche pas.
+// Le composant ConversationItem reste inchangé
 const ConversationItem = ({ conv, onSelect, isActive }) => {
+    // ... (code du composant inchangé)
     const getLastMessagePreview = () => {
         if (!conv.last_message) return "Démarrez la conversation";
         if (conv.last_message_type === 'image') return "📷 Image";
@@ -40,9 +43,7 @@ const ConversationItem = ({ conv, onSelect, isActive }) => {
     );
 };
 
-
 const DirectMessagesPage = () => {
-    // Hooks pour le routage, le contexte et l'état
     const { conversationId } = useParams();
     const navigate = useNavigate();
     const { user, token } = useContext(AuthContext);
@@ -55,13 +56,12 @@ const DirectMessagesPage = () => {
         currentConversationRef.current = currentConversation;
     }, [currentConversation]);
 
-    // --- LOGIQUE DE CHARGEMENT (SIMPLIFIÉE) ---
-
     // 1. Fonction pour charger la liste des conversations
     const fetchConversations = () => {
         if (token) {
-            axios.get('http://localhost:5000/api/conversations', { headers: { Authorization: `Bearer ${token}` } })
-                .then(res => setConversations(res.data || [])) // On prend les données telles quelles
+            // --- CHANGEMENT N°2.1 : Utilisation de apiClient ---
+            apiClient.get('/api/conversations')
+                .then(res => setConversations(res.data || []))
                 .catch(err => console.error("Erreur chargement conversations", err));
         }
     };
@@ -73,22 +73,20 @@ const DirectMessagesPage = () => {
         setMessages([]);
         socket.emit('joinConversation', { conversationId: String(conv.id) });
         try {
-            const res = await axios.get(`http://localhost:5000/api/conversations/${conv.id}/messages`, { headers: { Authorization: `Bearer ${token}` } });
-            // SIMPLIFICATION MAJEURE : On ne transforme plus les messages. On fait confiance à l'API.
+            // --- CHANGEMENT N°2.2 : Utilisation de apiClient ---
+            const res = await apiClient.get(`/api/conversations/${conv.id}/messages`);
             setMessages(res.data || []);
         } catch (error) {
             console.error("Erreur chargement messages:", error);
         }
     };
 
-    // --- GESTION DES EFFETS (useEffect) ---
-
     // Charge la liste des conversations au démarrage
     useEffect(() => {
         fetchConversations();
     }, [token]);
 
-    // Charge les messages quand l'URL change (clic sur une conversation ou retour sur la page)
+    // Charge les messages quand l'URL change
     useEffect(() => {
         if (conversationId && conversations.length > 0) {
             const activeConv = conversations.find(c => String(c.id) === conversationId);
@@ -96,38 +94,27 @@ const DirectMessagesPage = () => {
                 loadMessages(activeConv);
             }
         }
-    }, [conversationId, conversations]); // Dépend de l'ID dans l'URL et de la liste chargée
+    }, [conversationId, conversations]);
 
-    // Met en place le listener Socket.IO une seule fois
+    // Met en place le listener Socket.IO
     useEffect(() => {
         const privateMessageListener = (newMessage) => {
-            // On rafraîchit la liste (pour l'aperçu et l'ordre)
             fetchConversations();
-            // Si le message est pour la conversation active, on l'ajoute.
             if (currentConversationRef.current && String(newMessage.conversation_id) === String(currentConversationRef.current.id)) {
-                // SIMPLIFICATION MAJEURE : On ne transforme plus le message. Le backend l'a déjà fait.
                 setMessages(prev => [...prev, newMessage]);
             }
         };
         socket.on('privateMessage', privateMessageListener);
         return () => { socket.off('privateMessage', privateMessageListener); };
-    }, []); // Dépendance vide, c'est correct.
+    }, []);
 
-    // --- GESTION DES ACTIONS UTILISATEUR ---
-
-    // Quand on clique sur une conversation, on change juste l'URL. Le useEffect s'occupera du reste.
     const handleSelectConversation = (conv) => {
         navigate(`/dms/${conv.id}`);
     };
 
-    // Quand on envoie un message texte
     const handleSendMessage = (content, type = 'text') => {
         if (!content.trim() || !currentConversation || !user) return;
-        
         socket.emit('sendPrivateMessage', { content, userId: user.id, conversationId: currentConversation.id, type });
-
-        // Mise à jour optimiste : le seul endroit où on crée un objet message.
-        // Il DOIT avoir la même structure que ce que le backend envoie.
         const optimisticMessage = {
             id: `temp-${Date.now()}`,
             content: content,
@@ -136,23 +123,20 @@ const DirectMessagesPage = () => {
             user: { id: user.id, username: user.username, avatar: user.avatar }
         };
         setMessages(prev => [...prev, optimisticMessage]);
-        
-        // Mettre à jour la liste à gauche pour la réactivité
         setConversations(prev => prev.map(c => 
             c.id === currentConversation.id ? { ...c, last_message: content, last_message_time: optimisticMessage.timestamp, last_message_type: type } : c
         ).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
     };
     
-    // Quand on envoie un fichier
     const handleFileUpload = async (file) => {
         if (!file || !currentConversation || !user) return;
         const formData = new FormData();
         formData.append('file', file);
         try {
-            const res = await axios.post('http://localhost:5000/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } });
+            // --- CHANGEMENT N°2.3 : Utilisation de apiClient ---
+            const res = await apiClient.post('/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             const { fileUrl, fileType } = res.data;
             const messageType = fileType.startsWith('image/') ? 'image' : (fileType.startsWith('video/') ? 'video' : 'file');
-            // On réutilise handleSendMessage pour envoyer le message de type fichier
             handleSendMessage(fileUrl, messageType);
         } catch (error) { console.error(error); }
     };

@@ -1,18 +1,41 @@
-// frontend/src/pages/SettingsPage.jsx
+// frontend/src/pages/SettingsPage.jsx - Version Corrigée
 
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // <-- On n'importe plus axios directement
+import apiClient from '../api/axios'; // <-- On importe notre client API
 import AuthContext from '../context/AuthContext';
 import { FaCamera } from 'react-icons/fa';
 import './SettingsPage.css';
 
-// Le composant BlockedUsersList reste identique.
-const BlockedUsersList = ({ token }) => { /* ... Collez le code de BlockedUsersList ici ... */ };
-const BlockedUsersListComponent = ({ token }) => {
+
+const BlockedUsersListComponent = () => { // <-- On n'a plus besoin de 'token' ici
     const [blockedUsers, setBlockedUsers] = useState([]);
-    const fetchBlockedUsers = async () => { try { const res = await axios.get('http://localhost:5000/api/users/blocked', { headers: { Authorization: `Bearer ${token}` } }); setBlockedUsers(res.data); } catch (error) { console.error("Erreur chargement utilisateurs bloqués", error); } };
-    useEffect(() => { if (token) fetchBlockedUsers(); }, [token]);
-    const handleUnblock = async (userId) => { try { await axios.delete(`http://localhost:5000/api/users/unblock/${userId}`, { headers: { Authorization: `Bearer ${token}` } }); fetchBlockedUsers(); } catch (error) { alert('Le déblocage a échoué.'); } };
+
+    const fetchBlockedUsers = async () => {
+        try {
+            // --- CORRECTION : Utilisation de apiClient ---
+            const res = await apiClient.get('/api/users/blocked');
+            setBlockedUsers(res.data);
+        } catch (error) {
+            console.error("Erreur chargement utilisateurs bloqués", error);
+        }
+    };
+    
+    // On peut retirer la dépendance à 'token' car le apiClient le gère
+    useEffect(() => {
+        fetchBlockedUsers();
+    }, []);
+
+    const handleUnblock = async (userId) => {
+        try {
+            // --- CORRECTION : Utilisation de apiClient ---
+            await apiClient.delete(`/api/users/unblock/${userId}`);
+            fetchBlockedUsers(); // Rafraîchir la liste
+        } catch (error) {
+            alert('Le déblocage a échoué.');
+        }
+    };
+
     return (
         <div className="blocked-users-section">
             <h2>Utilisateurs Bloqués</h2>
@@ -33,8 +56,7 @@ const BlockedUsersListComponent = ({ token }) => {
 
 
 const SettingsPage = () => {
-    // MODIFIÉ : On récupère refreshUser depuis le contexte
-    const { user, token, refreshUser } = useContext(AuthContext);
+    const { user, refreshUser } = useContext(AuthContext); // On n'a plus besoin du token directement ici
     const [profileData, setProfileData] = useState({
         age: '', gender: 'Non précisé', interests: '',
         relationship_intent: 'Non précisé', location: '',
@@ -43,8 +65,6 @@ const SettingsPage = () => {
     const [statusMessage, setStatusMessage] = useState('');
     const fileInputRef = useRef(null);
 
-    // MODIFIÉ : On utilise l'objet 'user' du contexte pour remplir le formulaire
-    // Cela garantit que le formulaire est toujours synchronisé avec le contexte global
     useEffect(() => {
         if (user) {
             setProfileData({
@@ -56,7 +76,7 @@ const SettingsPage = () => {
                 profile_picture_url: user.profile_picture_url || ''
             });
         }
-    }, [user]); // Cet effet se déclenchera chaque fois que l'utilisateur du contexte change
+    }, [user]);
 
     const handleChange = (e) => setProfileData({ ...profileData, [e.target.name]: e.target.value });
 
@@ -64,8 +84,9 @@ const SettingsPage = () => {
         e.preventDefault();
         setStatusMessage('Enregistrement...');
         try {
-            await axios.put('http://localhost:5000/api/users/profile', profileData, { headers: { Authorization: `Bearer ${token}` } });
-            await refreshUser(); // Rafraîchir le contexte après la mise à jour des infos texte aussi
+            // --- CORRECTION : Utilisation de apiClient ---
+            await apiClient.put('/api/users/profile', profileData);
+            await refreshUser();
             setStatusMessage('Profil enregistré avec succès !');
         } catch (error) { setStatusMessage('Erreur lors de l\'enregistrement.'); }
         setTimeout(() => setStatusMessage(''), 3000);
@@ -80,19 +101,17 @@ const SettingsPage = () => {
         formData.append('file', file);
         setStatusMessage('Téléchargement de la photo...');
         try {
-            await axios.post('http://localhost:5000/api/users/profile/picture', formData, {
-                headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
+            // --- CORRECTION : Utilisation de apiClient ---
+            await apiClient.post('/api/users/profile/picture', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            
-            // LA CORRECTION CLÉ : On appelle refreshUser() pour mettre à jour le contexte global
             await refreshUser();
-            
             setStatusMessage('Photo mise à jour !');
         } catch (error) {
             console.error("Erreur d'upload de la photo", error);
             setStatusMessage("L'upload a échoué.");
         }
-        e.target.value = null;
+        e.target.value = null; // Permet de ré-uploader le même fichier
         setTimeout(() => setStatusMessage(''), 3000);
     };
 
@@ -115,7 +134,7 @@ const SettingsPage = () => {
                     </div>
                 </div>
                 <form onSubmit={handleSubmit} className="settings-form">
-                    {/* Le formulaire est inchangé */}
+                    {/* Le formulaire reste inchangé */}
                     <div className="form-group">
                         <label htmlFor="age">Âge</label>
                         <input type="number" id="age" name="age" value={profileData.age} onChange={handleChange} />
@@ -144,7 +163,7 @@ const SettingsPage = () => {
                     {statusMessage && <p className="status-message">{statusMessage}</p>}
                 </form>
                 <hr className="divider" />
-                <BlockedUsersListComponent token={token} />
+                <BlockedUsersListComponent /> {/* <-- On n'a plus besoin de passer le token ici */}
             </div>
         </div>
     );
