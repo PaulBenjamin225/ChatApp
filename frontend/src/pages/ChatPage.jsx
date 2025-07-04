@@ -1,15 +1,14 @@
-// frontend/src/pages/ChatPage.jsx - Version Corrigée
+// frontend/src/pages/ChatPage.jsx 
 
 import React, { useState, useEffect, useContext } from 'react';
 import io from 'socket.io-client';
-// import axios from 'axios'; // <-- On n'a plus besoin de axios directement
-import apiClient from '../api/axios'; // <-- CHANGEMENT : On importe notre client API centralisé
+import apiClient from '../api/axios'; //  client API centralisé
 import AuthContext from '../context/AuthContext';
 import RoomList from '../components/RoomList';
 import ChatWindow from '../components/ChatWindow';
 import RoomInfo from '../components/RoomInfo';
 
-// --- CHANGEMENT N°1 : Connexion Socket.IO dynamique ---
+// --- Connexion Socket.IO dynamique ---
 // On récupère l'URL de l'API depuis les variables d'environnement.
 const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const socket = io(VITE_API_URL);
@@ -37,7 +36,7 @@ const ChatPage = () => {
 
     // Cet effet gère le chargement des données
     useEffect(() => {
-        // --- CHANGEMENT N°2.1 : Utilisation de apiClient ---
+        // --- Utilisation de apiClient ---
         // L'URL de base et le header d'autorisation sont gérés automatiquement !
         if (token && rooms.length === 0) {
             apiClient.get('/api/rooms')
@@ -65,7 +64,7 @@ const ChatPage = () => {
         socket.emit('joinRoom', { user, roomId: room.id });
         
         try {
-            // --- CHANGEMENT N°2.2 : Utilisation de apiClient ---
+            // --- Utilisation de apiClient ---
             const res = await apiClient.get(`/api/rooms/${room.id}/messages`);
             setMessages(res.data);
         } catch (error) {
@@ -84,7 +83,7 @@ const ChatPage = () => {
         const formData = new FormData();
         formData.append('file', file);
         try {
-            // --- CHANGEMENT N°2.3 : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             // Le token est géré automatiquement, on a juste besoin de spécifier le Content-Type pour les fichiers.
             const res = await apiClient.post('/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             const { fileUrl, fileType } = res.data;

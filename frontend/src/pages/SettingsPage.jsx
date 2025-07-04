@@ -1,19 +1,18 @@
-// frontend/src/pages/SettingsPage.jsx - Version Corrigée
+// frontend/src/pages/SettingsPage.jsx
 
 import React, { useState, useEffect, useContext, useRef } from 'react';
-// import axios from 'axios'; // <-- On n'importe plus axios directement
 import apiClient from '../api/axios'; // <-- On importe notre client API
 import AuthContext from '../context/AuthContext';
 import { FaCamera } from 'react-icons/fa';
 import './SettingsPage.css';
 
 
-const BlockedUsersListComponent = () => { // <-- On n'a plus besoin de 'token' ici
+const BlockedUsersListComponent = () => { 
     const [blockedUsers, setBlockedUsers] = useState([]);
 
     const fetchBlockedUsers = async () => {
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             const res = await apiClient.get('/api/users/blocked');
             setBlockedUsers(res.data);
         } catch (error) {
@@ -28,7 +27,7 @@ const BlockedUsersListComponent = () => { // <-- On n'a plus besoin de 'token' i
 
     const handleUnblock = async (userId) => {
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             await apiClient.delete(`/api/users/unblock/${userId}`);
             fetchBlockedUsers(); // Rafraîchir la liste
         } catch (error) {
@@ -56,7 +55,7 @@ const BlockedUsersListComponent = () => { // <-- On n'a plus besoin de 'token' i
 
 
 const SettingsPage = () => {
-    const { user, refreshUser } = useContext(AuthContext); // On n'a plus besoin du token directement ici
+    const { user, refreshUser } = useContext(AuthContext); 
     const [profileData, setProfileData] = useState({
         age: '', gender: 'Non précisé', interests: '',
         relationship_intent: 'Non précisé', location: '',
@@ -84,7 +83,7 @@ const SettingsPage = () => {
         e.preventDefault();
         setStatusMessage('Enregistrement...');
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             await apiClient.put('/api/users/profile', profileData);
             await refreshUser();
             setStatusMessage('Profil enregistré avec succès !');
@@ -101,7 +100,7 @@ const SettingsPage = () => {
         formData.append('file', file);
         setStatusMessage('Téléchargement de la photo...');
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             await apiClient.post('/api/users/profile/picture', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });

@@ -1,23 +1,20 @@
-// frontend/src/pages/DirectMessagesPage.jsx - Version Corrigée
-
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { formatRelative } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import apiClient from '../api/axios'; // <-- CHANGEMENT : On importe notre client API
+import apiClient from '../api/axios'; // client API centralisé
 import AuthContext from '../context/AuthContext';
 import ChatWindow from '../components/ChatWindow';
 import './DirectMessagesPage.css';
 
-// --- CHANGEMENT N°1 : Connexion Socket.IO dynamique ---
+// Connexion Socket.IO dynamique 
 const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const socket = io(VITE_API_URL);
 
-// Le composant ConversationItem reste inchangé
+// Le composant ConversationItem 
 const ConversationItem = ({ conv, onSelect, isActive }) => {
-    // ... (code du composant inchangé)
     const getLastMessagePreview = () => {
         if (!conv.last_message) return "Démarrez la conversation";
         if (conv.last_message_type === 'image') return "📷 Image";
@@ -43,88 +40,97 @@ const ConversationItem = ({ conv, onSelect, isActive }) => {
     );
 };
 
+
 const DirectMessagesPage = () => {
     const { conversationId } = useParams();
     const navigate = useNavigate();
-    const { user, token } = useContext(AuthContext);
+    const { user, token } = useContext(AuthContext); // token n'est pas utilisé directement, mais sa présence garantit que apiClient est authentifié
     const [conversations, setConversations] = useState([]);
     const [currentConversation, setCurrentConversation] = useState(null);
     const [messages, setMessages] = useState([]);
-    const currentConversationRef = useRef(null);
+   
 
-    useEffect(() => {
-        currentConversationRef.current = currentConversation;
-    }, [currentConversation]);
+    // --- LOGIQUE DE CHARGEMENT DES DONNÉES (STABILISÉE AVEC useCallback) ---
 
-    // 1. Fonction pour charger la liste des conversations
-    const fetchConversations = () => {
-        if (token) {
-            // --- CHANGEMENT N°2.1 : Utilisation de apiClient ---
-            apiClient.get('/api/conversations')
-                .then(res => setConversations(res.data || []))
-                .catch(err => console.error("Erreur chargement conversations", err));
-        }
-    };
-
-    // 2. Fonction pour charger les messages d'une conversation
-    const loadMessages = async (conv) => {
-        if (!conv || !token) return;
-        setCurrentConversation(conv);
-        setMessages([]);
-        socket.emit('joinConversation', { conversationId: String(conv.id) });
+    const fetchConversations = useCallback(async () => {
+        if (!token) return; // On garde la garde pour éviter les appels non authentifiés
         try {
-            // --- CHANGEMENT N°2.2 : Utilisation de apiClient ---
-            const res = await apiClient.get(`/api/conversations/${conv.id}/messages`);
+            const res = await apiClient.get('/api/conversations');
+            setConversations(res.data || []);
+        } catch (err) {
+            console.error("Erreur chargement conversations", err);
+        }
+    }, [token]);
+
+    const loadMessages = useCallback(async (convId) => {
+        if (!convId || !token) return;
+        try {
+            const res = await apiClient.get(`/api/conversations/${convId}/messages`);
             setMessages(res.data || []);
         } catch (error) {
             console.error("Erreur chargement messages:", error);
         }
-    };
-
-    // Charge la liste des conversations au démarrage
-    useEffect(() => {
-        fetchConversations();
     }, [token]);
 
-    // Charge les messages quand l'URL change
+    // --- GESTION DES EFFETS (useEffect) ---
+
+    useEffect(() => {
+        fetchConversations();
+    }, [fetchConversations]);
+
     useEffect(() => {
         if (conversationId && conversations.length > 0) {
             const activeConv = conversations.find(c => String(c.id) === conversationId);
-            if (activeConv && currentConversation?.id !== activeConv.id) {
-                loadMessages(activeConv);
+            if (activeConv) {
+                setCurrentConversation(activeConv);
+                loadMessages(conversationId);
             }
         }
-    }, [conversationId, conversations]);
+    }, [conversationId, conversations, loadMessages]);
 
-    // Met en place le listener Socket.IO
+    // --- GESTION DES SOCKETS ---
+
+    // Gère l'entrée/sortie des rooms de conversation
+    useEffect(() => {
+        if (conversationId) {
+            socket.emit('joinConversation', { conversationId });
+        }
+    }, [conversationId]);
+
+    // Gère la réception des messages entrants
     useEffect(() => {
         const privateMessageListener = (newMessage) => {
+            // Met à jour la liste des conversations à gauche (aperçu, ordre)
             fetchConversations();
-            if (currentConversationRef.current && String(newMessage.conversation_id) === String(currentConversationRef.current.id)) {
+
+            // Vérifie si le message appartient à la conversation actuellement affichée
+            const currentConvId = window.location.pathname.split('/').pop();
+            if (String(newMessage.conversation_id) === currentConvId) {
                 setMessages(prev => [...prev, newMessage]);
             }
         };
+
         socket.on('privateMessage', privateMessageListener);
-        return () => { socket.off('privateMessage', privateMessageListener); };
-    }, []);
+
+        return () => {
+            socket.off('privateMessage', privateMessageListener);
+        };
+    }, [fetchConversations]); // Dépend de fetchConversations pour la mise à jour
+
+    // --- GESTION DES ACTIONS UTILISATEUR ---
 
     const handleSelectConversation = (conv) => {
         navigate(`/dms/${conv.id}`);
     };
 
+    // CORRECTION APPLIQUÉE ICI : suppression de la mise à jour optimiste
     const handleSendMessage = (content, type = 'text') => {
         if (!content.trim() || !currentConversation || !user) return;
+        
         socket.emit('sendPrivateMessage', { content, userId: user.id, conversationId: currentConversation.id, type });
-        const optimisticMessage = {
-            id: `temp-${Date.now()}`,
-            content: content,
-            type: type,
-            timestamp: new Date().toISOString(),
-            user: { id: user.id, username: user.username, avatar: user.avatar }
-        };
-        setMessages(prev => [...prev, optimisticMessage]);
+        
         setConversations(prev => prev.map(c => 
-            c.id === currentConversation.id ? { ...c, last_message: content, last_message_time: optimisticMessage.timestamp, last_message_type: type } : c
+            c.id === currentConversation.id ? { ...c, last_message: content, last_message_time: new Date().toISOString(), last_message_type: type } : c
         ).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
     };
     
@@ -133,12 +139,13 @@ const DirectMessagesPage = () => {
         const formData = new FormData();
         formData.append('file', file);
         try {
-            // --- CHANGEMENT N°2.3 : Utilisation de apiClient ---
             const res = await apiClient.post('/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             const { fileUrl, fileType } = res.data;
             const messageType = fileType.startsWith('image/') ? 'image' : (fileType.startsWith('video/') ? 'video' : 'file');
             handleSendMessage(fileUrl, messageType);
-        } catch (error) { console.error(error); }
+        } catch (error) { 
+            console.error(error); 
+        }
     };
 
     return (

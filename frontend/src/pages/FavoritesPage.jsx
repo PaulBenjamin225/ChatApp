@@ -1,8 +1,7 @@
-// frontend/src/pages/FavoritesPage.jsx - Version Corrigée
+// frontend/src/pages/FavoritesPage.jsx 
 
 import React, { useState, useEffect, useContext } from 'react';
-// import axios from 'axios'; // <-- CHANGEMENT : On n'a plus besoin d'importer axios ici
-import apiClient from '../api/axios'; // <-- CHANGEMENT : On importe notre client API centralisé
+import apiClient from '../api/axios'; // client API centralisé
 import AuthContext from '../context/AuthContext';
 import { UserCard } from './UsersPage';
 import './UsersPage.css';
@@ -16,7 +15,7 @@ const FavoritesPage = () => {
         if (!token) return;
         setLoading(true);
         
-        // --- CHANGEMENT : Utilisation de apiClient ---
+        // --- Utilisation de apiClient ---
         // L'URL et le header d'autorisation sont gérés automatiquement.
         apiClient.get('/api/favorites')
             .then(res => setFavorites(res.data))

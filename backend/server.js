@@ -134,11 +134,11 @@ io.on('connection', (socket) => {
             // Étape 3: Récupérer le message complet avec les informations de l'utilisateur
             const getMessageQuery = `
                 SELECT 
-                    pm.id, pm.content, pm.type, pm.created_at AS timestamp,
+                    pm.id, pm.content, pm.type, pm.timestamp,
                     pm.conversation_id,
                     u.id AS user_id, 
                     u.username, 
-                    u.avatar
+                    u.profile_picture_url AS avatar -- On sélectionne la bonne colonne et on lui donne l'alias 'avatar'
                 FROM private_messages pm
                 JOIN users u ON pm.user_id = u.id
                 WHERE pm.id = ?

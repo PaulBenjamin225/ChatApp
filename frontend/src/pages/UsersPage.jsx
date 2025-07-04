@@ -1,7 +1,6 @@
-// frontend/src/pages/UsersPage.jsx - Version Corrigée
+// frontend/src/pages/UsersPage.jsx 
 
 import React, { useState, useEffect, useContext } from 'react';
-// import axios from 'axios'; // <-- On n'a plus besoin de axios
 import apiClient from '../api/axios'; // <-- On importe notre client API
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext'; // On en a encore besoin pour le token de UsersPage
@@ -15,7 +14,7 @@ export const UserCard = ({ user, onBlock, isFavorite, onFavoriteToggle }) => {
 
     const handleStartConversation = async () => {
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             await apiClient.post('/api/conversations', { partnerId: user.id });
             navigate('/dms');
         } catch (error) {
@@ -30,10 +29,10 @@ export const UserCard = ({ user, onBlock, isFavorite, onFavoriteToggle }) => {
         
         try {
             if (action === 'post') {
-                // --- CORRECTION : Utilisation de apiClient ---
+                // ---  Utilisation de apiClient ---
                 await apiClient.post(url, {});
             } else {
-                // --- CORRECTION : Utilisation de apiClient ---
+                // ---  Utilisation de apiClient ---
                 await apiClient.delete(url);
             }
             if(onFavoriteToggle) {
@@ -73,7 +72,7 @@ const UsersPage = () => {
         if (!token) return;
         setLoading(true);
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             const usersRes = await apiClient.get(`/api/users/search`, {
                 params: { keyword: searchTerm }
             });
@@ -81,7 +80,7 @@ const UsersPage = () => {
 
             if (usersRes.data.length > 0) {
                 const userIds = usersRes.data.map(u => u.id);
-                // --- CORRECTION : Utilisation de apiClient ---
+                // --- Utilisation de apiClient ---
                 const favsRes = await apiClient.post(`/api/favorites/status`, { userIds });
                 setFavoriteStatus(favsRes.data);
             } else {
@@ -104,7 +103,7 @@ const UsersPage = () => {
     const handleBlockUser = async (userId) => {
         if (!window.confirm("Êtes-vous sûr de vouloir bloquer cet utilisateur ?")) return;
         try {
-            // --- CORRECTION : Utilisation de apiClient ---
+            // ---  Utilisation de apiClient ---
             await apiClient.post(`/api/users/block/${userId}`, {});
             fetchUsersAndFavorites();
         } catch (err) { alert("Le blocage a échoué."); }
